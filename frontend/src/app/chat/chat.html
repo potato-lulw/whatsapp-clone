@@ -1,0 +1,43 @@
+<div class="h-[100svh] bg-background text-foreground flex overflow-hidden">
+  <!-- Sidebar (desktop) -->
+  <app-chat-sidebar
+    class="hidden md:block w-80 shrink-0 border-r border-border"
+    [chats]="chats()"
+    [activeChatId]="selectedChatId()"
+    (selectChat)="onSelectChat($event)"
+    [onOpenWelcome]="onOpenWelcome"
+    [online]="online()"
+  ></app-chat-sidebar>
+
+  <!-- Sidebar (mobile overlay) -->
+  @if (showSidebar()) {
+    <div
+      class="fixed inset-0 z-40 bg-background md:hidden"
+      (click)="showSidebar.set(false)"
+    ></div>
+    <app-chat-sidebar
+      class="fixed inset-y-0 left-0 z-50 w-4/5 max-w-sm border-r border-border bg-background shadow-xl md:hidden"
+      [chats]="chats()"
+      [activeChatId]="selectedChatId()"
+      (selectChat)="onSelectChat($event)"
+      [onOpenWelcome]="onOpenWelcome"
+    ></app-chat-sidebar>
+  }
+
+  <!-- Right side: either Welcome or Chat Window -->
+  <div class="flex-1">
+    @if (activeChat(); as chat) {
+      <app-chat-window
+        class="h-full"
+        [title]="chat.name"
+        [typingUsers]="typingUsers()"
+        [messages]="currentMessages()"
+        (sendMessage)="onSendMessage($event)"
+        (openSidebar)="onRequestOpenSidebar()"
+        (typing)="onInput()"
+      ></app-chat-window>
+    } @else {
+      <app-chat-welcome class="h-full" />
+    }
+  </div>
+</div>

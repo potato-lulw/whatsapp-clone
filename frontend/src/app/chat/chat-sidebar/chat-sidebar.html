@@ -1,0 +1,40 @@
+<div class="flex h-full w-full flex-col bg-background text-foreground">
+  <div class="flex items-center justify-between p-2 border-b border-border">
+    <div class="p-4 font-semibold text-lg cursor-pointer" (click)="onOpenWelcome()">
+      Chats
+    </div>
+    <div>
+      <app-theme-toggle></app-theme-toggle>
+    </div>
+  </div>
+
+  <div class="flex-1  overflow-y-auto p-2">
+    <ul>
+      <li *ngFor="let chat of chats">
+        <button (click)="onSelect(chat.id)" class="w-full text-left px-4 py-3 mb-2 transition rounded-md flex flex-row  justify-between items-center
+                 hover:bg-accent" [ngClass]="{
+            'bg-muted': chat.id === activeChatId
+          }">
+          <div class="flex flex-col gap-2 justify-between">
+            <span class="font-medium">{{ chat.name }}</span>
+            <span class="text-sm text-muted-foreground truncate">
+              {{ chat.lastMessage.content }}
+            </span>
+          </div>
+          <div>
+            
+              @if (online.has(chat.chatterId)) {
+              <div class="text-xs text-muted-foreground h-4 w-4 bg-gradient-to-br from-green-200   to-[#0081a1] rounded-full"></div>
+              } @else {
+              <div class="text-xs text-muted-foreground h-4 w-4 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full"></div>
+              }
+           
+          </div>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <div class="p-2">
+    <button hlmBtn class="w-full" (click)="onLogout()">Log Out</button>
+  </div>
+</div>

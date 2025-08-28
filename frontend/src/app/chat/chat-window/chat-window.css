@@ -1,0 +1,15 @@
+.chat-wallpaper {
+    background-image: url("../../../../public/images/ttten.svg");
+    background-size: cover;
+}
+
+.chat-clip-right {
+    clip-path: polygon(0 0, 100% 1%, 27% 100%, 0% 100%);
+}
+
+.chat-clip-left {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 73% 100%);
+}
+
+
+

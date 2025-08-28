@@ -1,0 +1,12 @@
+<button
+  variant="outline"
+  hlmBtn
+  class="h-10 w-10 chatthem rounded-full flex items-center justify-center p-1"
+  (click)="toggleTheme()"
+>
+  @if (theme() === 'light') {
+    <mat-icon class="text-foreground">dark_mode</mat-icon>
+  } @else {
+    <mat-icon class="text-foreground">light_mode</mat-icon>
+  }
+</button>

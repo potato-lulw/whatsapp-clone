@@ -1,0 +1,49 @@
+<div  class="flex dark items-center justify-center min-h-screen  bg-muted text-foreground">
+  <div class="w-full max-w-md p-8 space-y-8 bg-background  rounded-lg shadow-md relative bg-background border border-border">
+    <h2 class="text-3xl  font-bold text-center mt-2">Sign in to your account</h2>
+    <app-theme-toggle class="absolute top-2 right-2"></app-theme-toggle>
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <div>
+        <label  for="email" class="block text-sm font-medium ">Email address</label>
+        <div class="mt-1">
+          <input hlmInput id="email" name="email" type="email" autocomplete="email" required formControlName="email">
+        </div>
+        @if (loginForm.get('email')?.invalid && (loginForm.get('email')?.dirty || loginForm.get('email')?.touched)) {
+        @if (loginForm.get('email')?.errors?.['required']) {
+        <small class="text-red-500">Email is required.</small>
+        } @else if (loginForm.get('email')?.errors?.['email']) {
+        <small class="text-red-500">Invalid email format.</small>
+        }
+        }
+      </div>
+
+      <div>
+        <label for="password" class="block text-sm font-medium ">Password</label>
+        <div class="mt-1">
+          <input id="password" name="password" type="password" autocomplete="current-password" required
+            formControlName="password"
+            class="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+        </div>
+        @if (loginForm.get('password')?.invalid && (loginForm.get('password')?.dirty ||
+        loginForm.get('password')?.touched)) {
+        @if (loginForm.get('password')?.errors?.['required']) {
+        <small class="text-red-500">Password is required.</small>
+        }
+        }
+      </div>
+
+      @if (loginError) {
+      <div class="p-2 text-sm text-red-700 bg-red-100 rounded-lg">
+        {{ loginError }}
+      </div>
+      }
+
+      <div>
+        <button type="submit" hlmBtn 
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium    ">
+          Sign in
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

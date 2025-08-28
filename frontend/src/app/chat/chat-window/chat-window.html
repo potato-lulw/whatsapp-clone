@@ -1,0 +1,84 @@
+<div class="flex h-full flex-col bg-background text-foreground">
+  <!-- Header -->
+  <div class="p-4 border-b border-border flex items-center justify-between">
+    <h2 class="font-semibold truncate">{{ title }}</h2>
+    <!-- Typing indicator -->
+
+    @if (senderTyping) {
+    <span class="text-xs text-muted-foreground animate-pulse">
+      typing…
+    </span>
+    }
+    <!-- Mobile: open sidebar button -->
+    <button class="md:hidden px-3 py-1 rounded-xl border border-border hover:bg-accent" (click)="onOpenSidebar()"
+      aria-label="Open chats">
+      ☰
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div #scrollContainer class="flex-1 overflow-y-auto p-4 space-y-4 chat-wallpaper bg-background">
+    @for (message of messages; track $index) {
+    <div class="flex gap-2"
+      [ngClass]="message.sender === 'me' ? 'justify-start flex-row-reverse' : 'justify-start flex-row'">
+
+      <!-- Bubble -->
+      <div class="max-w-[75%] w-fit rounded-md px-4 py-2 shadow relative" [ngClass]="
+          message.sender === 'me'
+            ? 'chatme text-primary-foreground'
+            : 'chatthem text-secondary-foreground'
+        ">
+        <!-- Bubble tail -->
+        <div class="absolute w-4 h-4" [ngClass]="
+            message.sender === 'me'
+              ? 'chatme top-0 -right-2 chat-clip-right'
+              : 'chatthem top-0 -left-2 chat-clip-left'
+          "></div>
+
+        <!-- Message text -->
+        <span>{{ message.text }}</span>
+      </div>
+
+      <!-- Tick + Hover Time -->
+      <div class="mt-1 flex-row flex items-center gap-1 text-xs text-gray-400 group">
+
+        <!-- Time (only visible on hover) -->
+        <span class="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          {{ message.time }}
+        </span>
+
+        <!-- Tick -->
+        @if (message.sender === 'me') {
+        @if (message.readBy.length === 2) {
+        <span class="flex items-center justify-center  bg-accent rounded-md h-6 w-6
+                  text-sky-500">
+          <fa-icon [icon]="faCheckDouble" class=""></fa-icon>
+        </span>
+        } @else {
+        <span class="flex items-center justify-center w-6 h-6 bg-accent rounded-md 
+                   text-gray-500">
+          <fa-icon [icon]="faCheck" class="text-[14px]"></fa-icon>
+        </span>
+        }
+        }
+
+
+      </div>
+    </div>
+    }
+    @if (senderTyping) {
+    <div class="flex gap-2 justify-start flex-row animate-pulse">
+      <div class="max-w-[75%] w-fit rounded-md px-4 py-2 shadow relative chatthem text-secondary-foreground">
+        <div class="absolute w-4 h-4 chatthem top-0 -left-2 chat-clip-left"></div>
+        <span>typing...</span>
+      </div>
+    </div>
+    }
+  </div>
+
+
+
+
+  <!-- Input -->
+  <app-chat-input class="border-t border-border" (sendMessage)="onSend($event)" (typing)="onTyping()"></app-chat-input>
+</div>

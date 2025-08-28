@@ -1,0 +1,79 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@spartan-ng/helm/button": [
+        "./src/libs/ui/ui-button-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/card": [
+        "./src/libs/ui/ui-card-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/carousel": [
+        "./src/libs/ui/ui-carousel-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/checkbox": [
+        "./src/libs/ui/ui-checkbox-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/date-picker": [
+        "./src/libs/ui/ui-date-picker-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/dialog": [
+        "./src/libs/ui/ui-dialog-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/form-field": [
+        "./src/libs/ui/ui-form-field-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/input": [
+        "./src/libs/ui/ui-input-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/input-otp": [
+        "./src/libs/ui/ui-input-otp-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/label": [
+        "./src/libs/ui/ui-label-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/popover": [
+        "./src/libs/ui/ui-popover-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/select": [
+        "./src/libs/ui/ui-select-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/sonner": [
+        "./src/libs/ui/ui-sonner-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/icon": [
+        "./src/libs/ui/ui-icon-helm/src/index.ts"
+      ],
+      "@spartan-ng/helm/calendar": [
+        "./src/libs/ui/ui-calendar-helm/src/index.ts"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "typeCheckHostBindings": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}

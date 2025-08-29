@@ -19,6 +19,19 @@ export const getUserById = async (req, res) => {
     res.status(200).json({ message: "User found", user })
 }
 
+export const getUserByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+        const user = await User.findOne({ email }).select('_id name email isAdmin')
+        if (!user) {
+            res.status(404).json({ message: "User not found" })
+        }
+        res.status(200).json({ message: "User found", user })
+    } catch (e) {
+        res.status(500).json({ message: "Server error", error: e.message })
+    }
+}
+
 export const createUser = async (req, res) => {
     const { name, email, password, isAdmin = false } = req.body
     const userExists = await User.findOne({ email })

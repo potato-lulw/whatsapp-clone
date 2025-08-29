@@ -17,6 +17,7 @@ export class ChatSidebar {
   @Input() chats: ChatPreview[] = [];
   @Input() activeChatId: string | null = null;
   @Input() onOpenWelcome: () => void = () => {};
+  @Input() onNewChatButtonClick: () => void = () => {};
   @Output() selectChat = new EventEmitter<string>();
   @Input() online = new Set<string>();
   private authService = inject(Auth);

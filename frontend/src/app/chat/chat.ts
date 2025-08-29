@@ -7,16 +7,19 @@ import { ConversationsService } from '../api/conversations';
 import { ChatPreview } from '../models/Conversation';
 import { MessagesService } from '../api/messages';
 import { Auth } from '../core/auth';
-import { MessageType } from '../models/Message';
+import { Message, MessageType } from '../models/Message';
 import { format, formatDistanceToNow } from 'date-fns';
 import { SocketService } from '../socket/socket';
-import { map } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 import { nanoid } from "nanoid";
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NewChatForm } from '../shared/components/new-chat-form/new-chat-form';
+import { UsersService } from '../api/users';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, ChatSidebar, ChatWindow, ChatWelcome],
+  imports: [CommonModule, ChatSidebar, ChatWindow, ChatWelcome, NewChatForm],
   templateUrl: './chat.html',
   styleUrls: ['./chat.css'],
 })
@@ -26,16 +29,86 @@ export class Chat {
   private messagesService = inject(MessagesService);
   private authService = inject(Auth);
   private socketService = inject(SocketService);
-
-  readonly messages = signal<Record<string, MessageType[]>>({});
+  private userService = inject(UsersService)
+  readonly conversations = signal<Record<string, MessageType[]>>({});
   readonly UserId = this.authService.getUserId();
 
   readonly selectedChatId = signal<string | null>(null);
   readonly showSidebar = signal<boolean>(false);
+  readonly showNewChatForm = signal<boolean>(false);
   private readMessages = signal<string[]>([]);
   readonly online = signal<Set<string>>(new Set());
   typingUsers = signal<string[]>([]);
   private typingTimeout: any = null;
+  newChatForm: FormGroup;
+  private fb = inject(FormBuilder);
+
+  constructor() {
+    this.newChatForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      message: ['', [Validators.required]],
+    })
+  }
+
+  onNewChatButtonClick = () => {
+    this.showNewChatForm.set(true);
+  }
+
+  onNewChatFormSubmit({ email, message }: { email: string; message: string }) {
+  console.log("New chat started with", email);
+  console.log("Message:", message);
+
+  this.userService.getUserByEmail(email).pipe(
+    switchMap(user => {
+      if (!user) {
+        throw new Error("User not found");
+      }
+      return this.messagesService.sendMessage(this.UserId, message, 'text', user._id);
+    })
+  ).subscribe({
+    next: (messageData: Message) => {
+      const newConvId = messageData.conversationId;
+
+      // set as active
+      this.selectedChatId.set(newConvId);
+
+      // ensure conversation exists
+      if (!this.conversations()[newConvId]) {
+        this.conversations.update(map => ({ ...map, [newConvId]: [] }));
+      }
+
+      // add the first message immutably
+      this.conversations.update(map => {
+        const list = map[newConvId] ?? [];
+        return {
+          ...map,
+          [newConvId]: [
+            ...list,
+            {
+              id: messageData._id,
+              senderId: this.UserId,
+              text: message,
+              sender: 'me',
+              time: new Date(messageData.createdAt ?? Date.now()).toISOString(),
+              readBy: [this.UserId],
+            }
+          ]
+        };
+      });
+
+      // reload conversations if you need to sync with backend
+      this.convoService.loadConversations();
+
+      // close form
+      this.showNewChatForm.set(false);
+    },
+    error: err => {
+      console.error("Error starting new chat:", err);
+    }
+  });
+}
+
+
 
   readonly chats = computed<ChatPreview[]>(() =>
     this.convoService.conversations().map(c => {
@@ -61,7 +134,7 @@ export class Chat {
   readonly currentMessages = computed<MessageType[]>(() => {
     const id = this.selectedChatId();
     if (!id) return [];
-    return this.messages()[id] ?? [];
+    return this.conversations()[id] ?? [];
   });
 
   onSelectChat = (conversationId: string) => {
@@ -69,7 +142,7 @@ export class Chat {
     this.showSidebar.set(false);
     this.readMessages.set([]);
 
-    // if (!this.messages()[conversationId] || this.messages()[conversationId].length === 0) {
+    // if (!this.conversations()[conversationId] || this.conversations()[conversationId].length === 0) {
     this.messagesService.getMessages(conversationId).subscribe(rawMsgs => {
       const messageIdsToMark: string[] = [];
 
@@ -89,7 +162,7 @@ export class Chat {
       });
 
       this.readMessages.set(messageIdsToMark);
-      this.messages.update(map => ({ ...map, [conversationId]: formatted }));
+      this.conversations.update(map => ({ ...map, [conversationId]: formatted }));
 
       if (messageIdsToMark.length > 0) {
         // emit instantly (so UI updates before DB catches up)
@@ -106,8 +179,8 @@ export class Chat {
     });
 
 
-    if (!this.messages()[conversationId]) {
-      this.messages.update(map => ({ ...map, [conversationId]: [] }));
+    if (!this.conversations()[conversationId]) {
+      this.conversations.update(map => ({ ...map, [conversationId]: [] }));
     }
     // }
   };
@@ -124,7 +197,7 @@ export class Chat {
       console.log("⚠️ Missing convoId or recipientId");
       return;
     }
-    this.messages.update(map => {
+    this.conversations.update(map => {
       const next = { ...map };
       const list = next[convoId] ? [...next[convoId]] : [];
       list.push({
@@ -184,7 +257,7 @@ export class Chat {
       const convoId = msg.conversationId;
       if (!convoId) return;
 
-      this.messages.update(map => {
+      this.conversations.update(map => {
         const next = { ...map };
         const list = next[convoId] ? [...next[convoId]] : [];
 
@@ -242,7 +315,7 @@ export class Chat {
     });
 
     this.socketService.onMessageReadUpdate(({ conversationId, userId, messageIds }) => {
-      this.messages.update(map => {
+      this.conversations.update(map => {
         const next = { ...map };
         const msgs = next[conversationId]?.map(m => {
           if (messageIds.includes(m.id)) {

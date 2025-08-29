@@ -1,0 +1,55 @@
+<div class="w-96 bg-background p-6 rounded-2xl shadow-lg border border-border">
+  <h2 class="text-xl font-semibold mb-4">Start New Chat</h2>
+
+  <form [formGroup]="newChatForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <!-- Email -->
+    <div>
+      <label class="block text-sm font-medium mb-1">Email</label>
+      <input
+        hlmInput
+        type="email"
+        formControlName="email"
+        placeholder="Enter email"
+        class="w-full"
+      />
+      @if (newChatForm.get('email')?.invalid && newChatForm.get('email')?.touched) {
+        <p class="text-red-500 text-xs mt-1">Please enter a valid email.</p>
+      }
+    </div>
+
+    <!-- Message -->
+    <div>
+      <label class="block text-sm font-medium mb-1">Message</label>
+      <input
+        hlmInput
+        formControlName="message"
+        placeholder="Type your message..."
+        
+        class="w-full resize-none"
+      />
+      @if (newChatForm.get('message')?.invalid && newChatForm.get('message')?.touched) {
+        <p class="text-red-500 text-xs mt-1">Message is required.</p>
+      }
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end gap-2">
+      <button
+        hlmBtn
+        variant="secondary"
+        type="button"
+        (click)="onCancel()"
+      >
+        Cancel
+      </button>
+      <button
+        hlmBtn
+        variant="default"
+        type="submit"
+        [disabled]="newChatForm.invalid"
+      >
+        Send
+      </button>
+    </div>
+  </form>
+</div>

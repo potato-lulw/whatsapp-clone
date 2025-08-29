@@ -1,4 +1,5 @@
 import Message from "../models/message.js";
+import Conversation from "../models/conversation.js"
 
 export default function chatSocket(io, socket) {
   // When a user joins
@@ -22,6 +23,8 @@ export default function chatSocket(io, socket) {
       content,
     });
 
+    await Conversation.findByIdAndUpdate(conversationId, { latestMessage: saved._id });
+
     const fullMsg = {
       ...saved.toObject(),
       tempId, // carry back so client knows which optimistic msg to replace
@@ -35,20 +38,30 @@ export default function chatSocket(io, socket) {
   });
 
 
-  socket.on("message:read", ({ conversationId, userId, messageIds, recipientId }) => {
-    // console.log("📩 [SERVER] message:read received", { conversationId, userId, messageIds, recipientId });
+  // server.js (inside io.on("connection"))
+  socket.on("message:read", async ({ conversationId, userId, messageIds, recipientId }) => {
+    console.log("📩 [SERVER] message:read received", { conversationId, userId, messageIds, recipientId });
 
     const payload = { conversationId, userId, messageIds };
 
-    // notify the other participant (recipient)
-    if (recipientId) {
-      io.to(recipientId).emit("message:read:update", payload);
+    // update DB
+    const result = await Message.updateMany(
+      { _id: { $in: messageIds } },
+      { $addToSet: { readBy: userId } }
+    );
+
+    if (result.modifiedCount > 0) {
+      // notify reader (so their local UI updates instantly)
+      io.to(userId).emit("message:read:update", payload);
+
+      // notify sender (so they see "double tick")
+      if (recipientId) {
+        io.to(recipientId).emit("message:read:update", payload);
+      }
+
+      // optional ack for the reader
+      io.to(userId).emit("message:read:ack", { success: true });
     }
-
-    // optional ack to the reader
-    io.to(userId).emit("message:read:ack", { success: true });
-
-    // console.log("📡 [SERVER] Emitted message:read:update to", recipientId);
   });
 
 

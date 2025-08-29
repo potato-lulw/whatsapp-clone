@@ -92,15 +92,19 @@ export class Chat {
       this.messages.update(map => ({ ...map, [conversationId]: formatted }));
 
       if (messageIdsToMark.length > 0) {
-        // ✅ Socket emit (instant UI)
-        this.socketService.markMessagesRead(conversationId, this.UserId, messageIdsToMark, this.activeChat()?.chatterId!)
+        // emit instantly (so UI updates before DB catches up)
+        this.socketService.markMessagesRead(
+          conversationId,
+          this.UserId,
+          messageIdsToMark,
+          this.activeChat()?.chatterId!
+        );
 
-        // ✅ REST for persistence (runs async, doesn’t block UI)
-        this.messagesService.markMessageRead(messageIdsToMark).subscribe(() => {
-          console.log("Persisted read in DB");
-        });
+        // optional REST fallback for persistence (DB sync)
+        // this.messagesService.markMessageRead(messageIdsToMark).subscribe();
       }
     });
+
 
     if (!this.messages()[conversationId]) {
       this.messages.update(map => ({ ...map, [conversationId]: [] }));
@@ -136,6 +140,7 @@ export class Chat {
     });
 
     this.socketService.sendMessage({ conversationId: convoId, senderId: this.UserId, recipientId, content: text, tempId });
+    this.socketService.stopTyping(convoId, this.UserId, recipientId);
   };
 
   onOpenWelcome = () => {
@@ -162,7 +167,7 @@ export class Chat {
     this.typingTimeout = setTimeout(() => {
       // console.log("🛑 Emitting typing:stop");
       this.socketService.stopTyping(convoId, this.UserId, recipientId);
-    }, 5000);
+    }, 2000);
   }
 
 
@@ -210,6 +215,17 @@ export class Chat {
         next[convoId] = list;
         return next;
       });
+
+
+      if (this.selectedChatId() === msg.conversationId) {
+        console.log("📤 [CLIENT] Emitting message:read");
+        this.socketService.markMessagesRead(
+          msg.conversationId,
+          this.UserId,
+          [msg._id], // use _id consistently
+          this.activeChat()?.chatterId!
+        );
+      }
     });
 
 
@@ -225,24 +241,23 @@ export class Chat {
       }
     });
 
-    this.socketService.onMessageReadUpdate(({ conversationId, userId, messageIds, recipientId }) => {
-      // console.log("🔄 [CHAT] Updating readBy for messages", { conversationId, userId, messageIds, recipientId });
-
+    this.socketService.onMessageReadUpdate(({ conversationId, userId, messageIds }) => {
       this.messages.update(map => {
         const next = { ...map };
         const msgs = next[conversationId]?.map(m => {
-          console.log(messageIds)
           if (messageIds.includes(m.id)) {
-            // console.log("📡 Marking message as read", { conversationId, userId, messageId: m.id });
-            return { ...m, readBy: [...m.readBy, userId] };
+            return {
+              ...m,
+              readBy: Array.from(new Set([...m.readBy, userId])) // dedupe
+            };
           }
           return m;
         });
-        // console.log(msgs)
         if (msgs) next[conversationId] = msgs;
         return next;
       });
     });
+
 
   }
 
